@@ -10,28 +10,36 @@
 #
 # HISTORY
 #
-# 25 March 2011
+# 07 December 2011
 # o Initial development implementation.
 #
 
 from    numpy           import *
 from    C_ggrid         import *
+from    C_spectrum      import *
+import  copy
 
-Cglh    = C_ggrid('grids/pos-centroids-analyze-lh.K1.frontal.smoothwm.txt.grid')
-Cgrh    = C_ggrid('grids/pos-centroids-analyze-rh.K1.frontal.smoothwm.txt.grid')
+Csp     = C_spectrum(['R', 'G', 'B']);
+Csp.component_add('R');
+Csp.component_add('G');
+Csp.component_add('B');
 
-Cg1     = C_ggrid('grids/grid1.grid')
-Cg2     = C_ggrid('grids/grid2.grid')
+print Csp
 
+Cg0     = C_ggrid(2, Csp, name='Cg0');
+Cg1     = C_ggrid(np.array((2,2)), Csp, name='Cg1')
+Cg00    = copy.deepcopy(Cg0) ; Cg00.mstr_name = 'Cg00'
 
-Cglhrh  = Cglh + Cgrh
-Cg12    = Cg1 + Cg2 + Cg1 + Cg1
-
-#print Cglh
-#print Cgrh
-#print Cglhrh
-
-print Cg1
+print Cg0
+print Cg00
+Cg2 = Cg0 + Cg1
 print Cg2
-print Cg12
+
+Cg0.spectralArray_set( np.array( [[0,0],[1,1]] ), np.array((10, 10, 10)))
+print Cg0
+print Cg00
+
+a_sp = Cg0.spectralArray_get( np.array( [[1,0],[0,0]] ))
+print a_sp
+
 

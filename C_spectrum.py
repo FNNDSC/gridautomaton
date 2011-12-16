@@ -152,15 +152,32 @@ class C_spectrum :
 
 	def arr_set(self, arr):
 	   """
+	   DESC
 		Given array input <arr>, overwrite internal 
 		data with elements as defined in <arr>
+		
+	   ARGS
+	   	arr		in		array to process; can
+	   					be 'ndarray' or 'list'
+	   	
+	   PRECONDITIONS
+	   	o self.ml_keys must be valid.
+	   	o arr must be type ndarray
+	   	
+	   POSTCONDITIONS
+	   	o If unable to set array, return False. Make no change
+	   	  to internal data.
 	   """
+	   b_setOK = False
 	   if type(arr).__name__ == 'ndarray':
-	        ilist = range(1, np.size(c)+1)
-	    	self.ml_keys = misc.list_i2str(ilist)
 	        self.mdict_spectrum = misc.dict_init(self.ml_keys, 
-							c.tolist())
-	    	self.keys_index()
+							arr.tolist())
+	        b_setOK = True
+	   if type(arr) is types.ListType:
+	        self.mdict_spectrum = misc.dict_init(self.ml_keys, arr)
+	        b_setOK = True
+	   if b_setOK:	self.keys_index()
+	   return b_setOK
 	    	
 	def arr_get(self):
 	   """
@@ -294,11 +311,21 @@ class C_spectrum :
 	    	self.mdict_keyIndex[field] = count
 	    	count += 1
 
-	def component_add(self, componentID, aval=1):
+	def component_add(self, componentID, aval=1, ab_overwrite=False):
 	    """
-	    	Add a component described by <componentID>
+	    DESC
+	    	Add (or set) a component described by <componentID>
 	    	to the base spectrum.
-	    	
+
+	    ARGS
+	    	componentID	string or int	component name or index
+	    	aval		int		value to add
+	    	ab_overwrite	bool		if True, overwrite the
+	    					component value with <aval>,
+	    					otherwise add <aval> to
+	    					current value.
+
+	    RET
 	    	Return component if successful, False if not.
 	    """
 	    b_ret = False
@@ -308,7 +335,10 @@ class C_spectrum :
 		    b_ret = componentID
 	    elif isinstance(componentID, int):
 	    	if componentID >= 1 and componentID <= len(self.ml_keys):
-	    	    self.mdict_spectrum[self.ml_keys[componentID-1]] += aval
+	    	    if ab_overwrite:
+	    	        self.mdict_spectrum[self.ml_keys[componentID-1]] += aval
+	    	    else:
+	    	        self.mdict_spectrum[self.ml_keys[componentID-1]] = aval
 	    	    b_ret = componentID
 	    return b_ret
 	    	    
@@ -330,17 +360,6 @@ class C_spectrum :
 	    	except IOError:
 	    	    b_ret = False 
 	    return b_ret
-
-	def toVect(self):
-	    """
-	    Return the spectrum as a numpy-type array
-	    """    
-	    v_spectrum	= zeros(1, len(self.ml_keys))
-	    count	= 0
-	    for el in self.ml_keys:
-	    	v_spectrum[count] = self.mdict_spectrum[self.ml_keys[el]]
-	    	count+=1   
-	    return v_spectrum
 
 	def sum(self):
 	    """

@@ -23,6 +23,8 @@ C_t.component_add('b')
 a       = array( (1, 1, 1, 2, 5, 10, 5, 2, 1, 1, 1))
 C_sa    = C_spectrum(a)
 
+print C_sa.arr_get()
+
 C_sp    = C_spectrum_color()
 C_sp.component_add('red')
 C_sp.component_add('red')
