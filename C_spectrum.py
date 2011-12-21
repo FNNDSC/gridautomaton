@@ -116,6 +116,7 @@ class C_spectrum :
 						#+ (and warnings level)
 	    self.mdict_keyIndex	= {};		# lookup of keys to indices
 	    self.mdict_spectrum	= {};		# the actual spectrum
+	    self.mNumKeys       = 0;
 	    self.mb_printHist 	= False;	# If true, print an actual
 						#+ histogram representation
 	    self.mb_printAsRow  = False;	# If true, print spectrum as a
@@ -149,6 +150,7 @@ class C_spectrum :
 	    if type(c) is types.TupleType:
 	    	for component in c:
 	    	    self.component_add(component)
+	    self.mNumKeys = len(self.ml_keys)
 
 	def arr_set(self, arr):
 	   """
@@ -313,10 +315,6 @@ class C_spectrum :
 
 	def component_add(self, componentID, aval=1, ab_overwrite=False):
 	    """
-	    DESC
-	    	Add (or set) a component described by <componentID>
-	    	to the base spectrum.
-
 	    ARGS
 	    	componentID	string or int	component name or index
 	    	aval		int		value to add
@@ -324,6 +322,9 @@ class C_spectrum :
 	    					component value with <aval>,
 	    					otherwise add <aval> to
 	    					current value.
+	    DESC
+	    	Add (or set) a component described by <componentID>
+	    	to the base spectrum.
 
 	    RET
 	    	Return component if successful, False if not.
@@ -342,6 +343,48 @@ class C_spectrum :
 	    	    b_ret = componentID
 	    return b_ret
 	    	    
+ 	def component_shift(self, al_fromToHarmonic, amount=1):
+	    """
+	    ARGS
+	    	al_fromToHarmonic  list: string or int	component name or index
+	    	amount		   float		amount to shift
+
+	    DESC
+	    	Shifts a "quanta" of spectral energy from the <fromHarmonic>
+	    	to the <toHarmonic>.
+	    	
+	    	If the <fromHarmonic> does not contain <amount> spectral
+	    	"energy", no shift is performed.
+	    	
+	    RETURN
+	    	The amount of energy shifted. If no shift, returns zero.
+	    """	    	    
+	    ret = 0
+	    fromHarmonic	= al_fromToHarmonic[0]
+	    toHarmonic		= al_fromToHarmonic[1]
+	    b_validFromHarmonic	= False
+	    b_validToHarmonic	= False
+	    if isinstance(fromHarmonic, types.StringTypes):
+	    	if fromHarmonic in self.ml_keys: b_validFromHarmonic = True
+	    if isinstance(toHarmonic, types.StringTypes):
+	    	if toHarmonic in self.ml_keys: b_validToHarmonic = True
+	    if isinstance(fromHarmonic, int):
+	    	if fromHarmonic >=1 and fromHarmonic <= self.mNumKeys:
+	    	    fromHarmonic = self.ml_keys[fromHarmonic-1]
+	    	    b_validFromHarmonic = True	
+	    if isinstance(toHarmonic, int):
+	    	if toHarmonic >=1 and toHarmonic <= self.mNumKeys:
+	    	    toHarmonic = self.ml_keys[toHarmonic-1]
+	    	    b_validToHarmonic = True	
+	    
+	    if b_validFromHarmonic and b_validToHarmonic:
+	        if self.mdict_spectrum[fromHarmonic] >= amount:
+	            self.mdict_spectrum[fromHarmonic] -= amount
+		    self.mdict_spectrum[toHarmonic]   += amount
+		    ret = amount
+
+	    return ret
+	    
 	def component_fadd(self, astr_fileName, aval=1):
 	    """
 	    	Add a component contained in <astr_fileName>
@@ -408,6 +451,25 @@ class C_spectrum :
 	    try:
 	    	self = pickle.load(self, open(astr_fileName))
 	    except PickleError: self.fatal('Load')
+		    
+	def max_harmonics(self):    
+	    """
+	    	Return as standard list the keys of the object that
+	    	correspond to the maximum value of the spectrum.
+	    """
+	    a_sp		= self.arr_get()
+	    f_max		= a_sp.max()
+	    l_maxComponents	= []
+	    for key in self.ml_keys:
+	    	if self.mdict_spectrum[key] == f_max:
+	    	    l_maxComponents.append(key)
+	    return l_maxComponents
+	   
+        def max(self):
+	    """
+	    	Return the max value of the spectrum
+	    """
+	    return self.arr_get().max()
 	
 class C_spectrum_color(C_spectrum):
 	"""

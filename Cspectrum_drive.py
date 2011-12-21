@@ -63,4 +63,6 @@ C_sas = C_sp + C_sp
 C_sas.printAsHistogram_set(True)
 C_sas.printColWidth_set(15)
 print C_sas
+C_sas.component_shift(['red', 'blue'])
+print C_sas
 
