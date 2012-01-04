@@ -13,7 +13,12 @@
 # o Initial development implementation.
 #
 
-from C_ggrid import *
+from C_ggrid            import *
+from C_spectrum_CAM     import *
+from copy import deepcopy
+
+import systemMisc       as misc
+import numpy            as np
 
 class C_CAE:
         # 
@@ -44,6 +49,15 @@ class C_CAE:
         #
         # Core methods - construct, initialise, id
         
+        def dprint(self, level, str_txt):
+            """
+                Simple "debug" print... based on verbosity level.
+            """
+            if level <= self.m_verbosity: print str_txt
+        
+        def verbosity_set(self, level):
+            self.m_verbosity = level
+        
         def error_exit(         self,
                                 astr_key,
                                 ab_exitToOs = 1
@@ -55,7 +69,7 @@ class C_CAE:
             print "\t%s"        % C_spectrum.mdictErr[astr_key]['error']
             print ""
             if ab_exitToOs:
-                    print "Returning to system with error code %d" % \
+                print "Returning to system with error code %d" % \
                                 C_spectrum.mdictErr[astr_key]['exitCode']
                 sys.exit(C_spectrum.mdictErr[astr_key]['exitCode'])
             return C_spectrum.mdictErr[astr_key]['exitCode']
@@ -85,31 +99,149 @@ class C_CAE:
 
             # The core data containers are grids of cellular automata 
             # machines
-            self.mgg_current    = None          # Currentt grid
-            self.mgg_next       = None          # Next iteration grid
+            self.mgg_current    = None          # Current grid
+            self.mgg_next       = None          # Next iteration grid            
             
-            
-            # For the most part, the CAE accepts the same constuctor
+            # For the most part, the CAE accepts the same constructor
             # pattern as the C_ggrid:
             if len(args) == 2:
-                    self.mgg_current    = C_ggrid(args[0], args[1])
-                    self.mgg_next       = C_ggrid(args[0], args[1])
+                    # Grid spectral elements are of type C_spectrum_CAM
+                    print "Creating current state grid...", ; misc.tic()
+                    self.mgg_current    = C_ggrid(*args, name='currentState')
+                    print "done. %s" % misc.toc()
+                    print "Creating next state grid...", ; misc.tic()
+                    self.mgg_next       = C_ggrid(*args, name='nextState')
+                    print "done. %s" % misc.toc()
 
             self.m_rows = self.mgg_current.rows_get()
             self.m_cols = self.mgg_current.cols_get()
+        
+        def initialize(self, *args, **kwargs):
+            """
+            ARGS
+                    *args[0]        nparray        initialize each CAM with
+                                                   corresponding element of
+                                                   nparray. Assumes that
+                                                   size(nparray) == size(grid).
+                                                   Passes array value at
+                                                   [row, col] to CAM at 
+                                                   [row, col].
+                                                   
+            DESC
+            
+                Generates an initial distribution across the world grid.
+            
+            KWARGS
+            
+                The pattern of initialization is specified by the kwargs:
+                
+                  pattern = "random" | "corners" | "diagonal"
                     
-        def nextState_process(self):
+                    Choose elements either randomly on the grid, or only on the
+                    corners, or only along the diagonal.
+                    
+                  elements = "canonical" | <N> | "all"
+                    
+                    "canonical"
+                    The number of grid elements to initialize. If "canonical",
+                    initialize only as many elements as there are spectral
+                    components in the CAM. Each successive element initializes
+                    a single successive spectral component.
+                    
+                    <N>  
+                    Initialize <N> elements.
+                    
+                    "all"
+                    Initialize all elements.
+                    
+            PRECONIDTIONS:
+                o Internal grids must exist
+                
+            POSTCONDITIONS:
+                o The "current" and "next" are initialized based on pattern
+                  of args.
+                o If an array is passed as first unnamed argument, values in
+                  the array are used to initialize the grid (provided that the
+                  array is the same size as grid). In such a case, all kwargs
+                  are ignored. If array size is not same as grid, no
+                  initialization is performed.
             """
-            The main control loop of the CAE. For each element in the
-            current grid, determine a dictionary of neighbors, and
-            send this dictionary to each CAM element. 
-            
-            Process the updates passed back from the CAM element.
-            
-            Primitive support for multithreaded/parallelization is also
-            included.
+
+            if len(args):
+                a_init = args[0]
+                if type(a_init).__name__ == 'ndarray':
+                    rows, cols = a_init.shape
+                    if rows == self.m_rows and cols == self.m_cols:
+                        for row in np.arange(0, rows):
+                            for col in np.arange(0, cols):
+                                value = a_init[row, col]
+                                self.mgg_current.spectrum_get(row, col).spectrum_init(value)
+            self.mgg_next = copy.deepcopy(self.mgg_current)
+        
+        def dict_createFromGridLocations(self, A_points):
             """
+                Given an array of grid locations, <A_points>, construct
+                and return a dictionary of next state spectra located at each of
+                the <A_points> and indexed by the spectra name.
+            """
+            dict_spectrum = {}
+            for point in A_points:
+                row, col = point
+                dict_spectrum[self.mgg_next.spectrum_get(row, col).name_get()] = \
+                        self.mgg_next.spectrum_get(row, col)
+            return dict_spectrum
+                                
+        def state_transition(self):
+            """
+            The state transition machine for the CAE; determines the
+            "next" state from the "current".
+            
+            PRECONDITIONS:
+                o The "current" == "next" state
+        
+            TRANSITION:
+                o The "next" state is changed according to "current" state
+                  in a decoupled element-by-element fashion.
+                
+            POSTCONDITIONS:
+                o Once each element in the "current" state has been processed,
+                  the "next" state is copied into the "current" state.
+                o A state transition is now complete.
+            
+            
+            Primitive support for multithreaded/parallelization is planned...
+            """
+            
+            # Process the current grid, and determine all the changes required to
+            # transition to the next state.
             for row in np.arange(0, self.m_rows):
                 for col in np.arange(0, self.m_cols):
-                    neighbors_dict(row, col)
-
+                    dict_nextStateNeighbourSpectra      = {}
+                    A_neighbours                        = \
+                        misc.neighbours_findFast(2, 1,
+                                    np.array( (row, col) ),
+                                    gridSize = np.array( (self.m_rows, self.m_cols) ),
+                                    wrapGridEdges       = False,
+                                    returnUnion         = True,
+                                    includeOrigin       = False)
+                    dict_nextStateNeighbourSpectra      = \
+                        self.dict_createFromGridLocations(A_neighbours)
+                    deltaSelf, deltaNeighbour           = \
+                        self.mgg_current.spectrum_get(row, col).nextStateDelta_determine(
+                                                dict_nextStateNeighbourSpectra)
+                    if deltaNeighbour:
+                        for update in deltaNeighbour.keys():
+                            updateRule      = deltaNeighbour[update]
+                            dict_nextStateNeighbourSpectra[update].nextState_process(updateRule)
+                
+            # Now update the current state with the next state
+            b_setFromArray = False
+            self.mgg_next.internals_sync(b_setFromArray)
+            self.mgg_current    = copy.deepcopy(self.mgg_next)    
+                        
+        def currentSpectralArray_get(self, anp_gridLocation):
+            """
+            Return the spectral array at a given location in the current grid.
+            """                        
+            return self.mgg_current.spectralArray_get(anp_gridLocation)
+    

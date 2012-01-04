@@ -132,7 +132,7 @@ class C_ggrid :
 			        
 	            <np_array>: 	
 	                If two-element vector of ([row, col]):
-	                		Creates internal array of [rowxcol]
+	                		Creates internal array of [row x col]
 	                		and initializes to zero. Initializes
 	                		grid spectra accordingly.
 	                		
@@ -371,7 +371,7 @@ class C_ggrid :
  	        nparray of spectra.
  		
  	    DESC
- 		Gets the spectral arrays the passed <anp_gridLocation>(s)
+ 		Gets the spectral arrays at the passed <anp_gridLocation>(s)
  		
  		<anp_gridLocation> is a column dominant vector of 2D grid
  		locations.
@@ -382,6 +382,12 @@ class C_ggrid :
  	    	row, col = anp_gridLocation[location]
  	    	np_gridSpectra[location] = (self.ma_grid[row, col]).copy()
  	    return np_gridSpectra
+ 	   
+ 	def spectrum_get(self, row, col):
+ 	    """
+ 	    	Return the spectrum at [row, col]
+ 	    """
+ 	    return self.macs_grid[row, col]
 
         def spectrumDefaults_set(self, row, col):
             """

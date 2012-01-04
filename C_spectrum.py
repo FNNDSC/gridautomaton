@@ -164,7 +164,6 @@ class C_spectrum :
 	   	
 	   PRECONDITIONS
 	   	o self.ml_keys must be valid.
-	   	o arr must be type ndarray
 	   	
 	   POSTCONDITIONS
 	   	o If unable to set array, return False. Make no change
@@ -180,6 +179,12 @@ class C_spectrum :
 	        b_setOK = True
 	   if b_setOK:	self.keys_index()
 	   return b_setOK
+	
+	def name_get(self):
+	    """
+	    	Return the 'mstr_name' of the object
+	    """
+	    return self.mstr_name
 	    	
 	def arr_get(self):
 	   """
@@ -332,14 +337,17 @@ class C_spectrum :
 	    b_ret = False
 	    if isinstance(componentID, types.StringTypes):
 	    	if componentID in self.ml_keys:
-		    self.mdict_spectrum[componentID] += aval;
+	    	    if ab_overwrite:
+   		        self.mdict_spectrum[componentID] = aval;
+   		    else:
+   		        self.mdict_spectrum[componentID] += aval;
 		    b_ret = componentID
 	    elif isinstance(componentID, int):
 	    	if componentID >= 1 and componentID <= len(self.ml_keys):
 	    	    if ab_overwrite:
-	    	        self.mdict_spectrum[self.ml_keys[componentID-1]] += aval
-	    	    else:
 	    	        self.mdict_spectrum[self.ml_keys[componentID-1]] = aval
+	    	    else:
+	    	        self.mdict_spectrum[self.ml_keys[componentID-1]] += aval
 	    	    b_ret = componentID
 	    return b_ret
 	    	    
