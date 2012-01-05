@@ -37,8 +37,6 @@ arr_world[100, 100]     = maxEnergy/3*2 + 1
 
 world.initialize(arr_world)
 
-for iter in np.arange(0, 10):
-    misc.tic()
+for iter in np.arange(0, 100):
     world.state_transition()
-    print misc.toc()
     

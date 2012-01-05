@@ -19,6 +19,7 @@ from copy import deepcopy
 
 import systemMisc       as misc
 import numpy            as np
+import itertools
 
 class C_CAE:
         # 
@@ -185,9 +186,10 @@ class C_CAE:
                 the <A_points> and indexed by the spectra name.
             """
             dict_spectrum = {}
-            for point in A_points:
-                row, col = point
-                dict_spectrum[self.mgg_next.spectrum_get(row, col).name_get()] = \
+            if A_points != None:
+                for point in A_points:
+                    row, col = point
+                    dict_spectrum[self.mgg_next.spectrum_get(row, col).name_get()] = \
                         self.mgg_next.spectrum_get(row, col)
             return dict_spectrum
                                 
@@ -207,16 +209,19 @@ class C_CAE:
                 o Once each element in the "current" state has been processed,
                   the "next" state is copied into the "current" state.
                 o A state transition is now complete.
-            
+                o Returns the number of elements processed.
             
             Primitive support for multithreaded/parallelization is planned...
             """
             
             # Process the current grid, and determine all the changes required to
             # transition to the next state.
+            elementProcessedCount = 0
+            misc.tic()
             for row in np.arange(0, self.m_rows):
                 for col in np.arange(0, self.m_cols):
                     dict_nextStateNeighbourSpectra      = {}
+                    A_neighbours                        = None
                     A_neighbours                        = \
                         misc.neighbours_findFast(2, 1,
                                     np.array( (row, col) ),
@@ -231,13 +236,21 @@ class C_CAE:
                                                 dict_nextStateNeighbourSpectra)
                     if deltaNeighbour:
                         for update in deltaNeighbour.keys():
+                            elementProcessedCount += 1
                             updateRule      = deltaNeighbour[update]
                             dict_nextStateNeighbourSpectra[update].nextState_process(updateRule)
-                
+            print "Update loop time: %f seconds (%d elements processed)." % \
+                        ( misc.toc(), elementProcessedCount )
+
             # Now update the current state with the next state
+            misc.tic()
             b_setFromArray = False
             self.mgg_next.internals_sync(b_setFromArray)
+            print misc.toc(sysprint="Synchronization: %f seconds.")
+            misc.tic()
             self.mgg_current    = copy.deepcopy(self.mgg_next)    
+            print misc.toc(sysprint="next->current deepcopy: %f seconds.\n")
+            return elementProcessedCount
                         
         def currentSpectralArray_get(self, anp_gridLocation):
             """
@@ -245,3 +258,8 @@ class C_CAE:
             """                        
             return self.mgg_current.spectralArray_get(anp_gridLocation)
     
+        def spectrum_get(self, row, col):
+            """
+            Return the spectrum (from the current state) at the given location
+            """
+            return self.mgg_current.spectrum_get(row, col)

@@ -159,7 +159,9 @@ class C_spectrum_CAM_RGB(C_spectrum_CAM):
                                         same dictionary key as the input
                                         adict_neighbors.
                                         
-        """        
+        """
+        if not adict_neighbors:  return None, None
+                
         # In the RGB CAM, we first determine if 'self' can
         # process its neighbors. In order to process a neighbor,
         # the 'self' must be dominant along one of its core
