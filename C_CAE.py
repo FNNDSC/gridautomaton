@@ -20,6 +20,8 @@ from copy import deepcopy
 import systemMisc       as misc
 import numpy            as np
 import itertools
+import cPickle
+import pickle
 
 class C_CAE:
         # 
@@ -28,8 +30,8 @@ class C_CAE:
         #
         mdictErr = {
             'Keys'          : {
-                'action'        : 'initializing base class, ', 
-                'error'         : 'it seems that no member keys are defined.', 
+                'action'        : 'initializing base class, ',
+                'error'         : 'it seems that no member keys are defined.',
                 'exitCode'      : 10},
             'Save'              : {
                 'action'        : 'attempting to pickle save self, ',
@@ -44,80 +46,80 @@ class C_CAE:
                 'error'         : 'a PickleError occured',
                 'exitCode'      : 14}
         }
-        
+
         #
         # Methods
         #
         # Core methods - construct, initialise, id
-        
-        def dprint(self, level, str_txt):
+
+        def dprint( self, level, str_txt ):
             """
                 Simple "debug" print... based on verbosity level.
             """
             if level <= self.m_verbosity: print str_txt
-        
-        def verbosity_set(self, level):
+
+        def verbosity_set( self, level ):
             self.m_verbosity = level
-        
-        def error_exit(         self,
+
+        def error_exit( self,
                                 astr_key,
-                                ab_exitToOs = 1
+                                ab_exitToOs=1
                                 ):
             print "%s:: FATAL ERROR" % self.mstr_obj
             print "\tSorry, some error seems to have occurred in <%s::%s>" \
-                            % (self.__name__, self.mstr_def)
-            print "\tWhile %s"  % C_spectrum.mdictErr[astr_key]['action']
-            print "\t%s"        % C_spectrum.mdictErr[astr_key]['error']
+                            % ( self.__name__, self.mstr_def )
+            print "\tWhile %s" % C_spectrum.mdictErr[astr_key]['action']
+            print "\t%s" % C_spectrum.mdictErr[astr_key]['error']
             print ""
             if ab_exitToOs:
                 print "Returning to system with error code %d" % \
                                 C_spectrum.mdictErr[astr_key]['exitCode']
-                sys.exit(C_spectrum.mdictErr[astr_key]['exitCode'])
+                sys.exit( C_spectrum.mdictErr[astr_key]['exitCode'] )
             return C_spectrum.mdictErr[astr_key]['exitCode']
 
-        def fatal(self, astr_key, astr_extraMsg=""):
-            if len(astr_extraMsg): print astr_extraMsg
-            self.error_exit( astr_key)
-        
-        def warn(self, astr_key, astr_extraMsg=""):
-            b_exitToOS  = 0
-            if len(astr_extraMsg): print astr_extraMsg
-            self.error_exit( astr_key, b_exitToOS)
-            
-        def __init__(self, *args):
-            self.__name__       = 'C_CAE'
-            self.mstr_obj       = 'C_CAE';      # name of object class
-            self.mstr_name      = 'unnamed';    # name of object variable
-            self.mstr_def       = 'void';       # name of function being processed
-            self.m_id           = -1;           # int id
-            self.m_iter         = 0;            # current iteration in an
+        def fatal( self, astr_key, astr_extraMsg="" ):
+            if len( astr_extraMsg ): print astr_extraMsg
+            self.error_exit( astr_key )
+
+        def warn( self, astr_key, astr_extraMsg="" ):
+            b_exitToOS = 0
+            if len( astr_extraMsg ): print astr_extraMsg
+            self.error_exit( astr_key, b_exitToOS )
+
+        def __init__( self, *args ):
+            self.__name__ = 'C_CAE'
+            self.mstr_obj = 'C_CAE';      # name of object class
+            self.mstr_name = 'unnamed';    # name of object variable
+            self.mstr_def = 'void';       # name of function being processed
+            self.m_id = -1;           # int id
+            self.m_iter = 0;            # current iteration in an
                                                 #+ arbitrary processing 
                                                 #+ scheme
-            self.m_verbosity    = 0;            # debug related value for 
+            self.m_verbosity = 0;            # debug related value for 
                                                 #+ object
-            self.m_warnings     = 0;            # show warnings 
+            self.m_warnings = 0;            # show warnings 
                                                 #+ (and warnings level)
 
             # The core data containers are grids of cellular automata 
             # machines
-            self.mgg_current    = None          # Current grid
-            self.mgg_next       = None          # Next iteration grid            
-            
+            self.mgg_current = None          # Current grid
+            self.mgg_next = None          # Next iteration grid            
+
             # For the most part, the CAE accepts the same constructor
             # pattern as the C_ggrid:
-            if len(args) == 2:
+            if len( args ) == 2:
                     # Grid spectral elements are of type C_spectrum_CAM
                     print "Creating current state grid...", ; misc.tic()
-                    self.mgg_current    = C_ggrid(*args, name='currentState')
+                    self.mgg_current = C_ggrid( *args, name='currentState' )
                     print "done. %s" % misc.toc()
                     print "Creating next state grid...", ; misc.tic()
-                    self.mgg_next       = C_ggrid(*args, name='nextState')
+                    self.mgg_next = C_ggrid( *args, name='nextState' )
                     print "done. %s" % misc.toc()
 
             self.m_rows = self.mgg_current.rows_get()
             self.m_cols = self.mgg_current.cols_get()
-        
-        def initialize(self, *args, **kwargs):
+
+        def initialize( self, *args, **kwargs ):
             """
             ARGS
                     *args[0]        nparray        initialize each CAM with
@@ -168,18 +170,20 @@ class C_CAE:
                   initialization is performed.
             """
 
-            if len(args):
+            if len( args ):
                 a_init = args[0]
-                if type(a_init).__name__ == 'ndarray':
+                if type( a_init ).__name__ == 'ndarray':
                     rows, cols = a_init.shape
                     if rows == self.m_rows and cols == self.m_cols:
-                        for row in np.arange(0, rows):
-                            for col in np.arange(0, cols):
+                        for row in np.arange( 0, rows ):
+                            for col in np.arange( 0, cols ):
                                 value = a_init[row, col]
-                                self.mgg_current.spectrum_get(row, col).spectrum_init(value)
-            self.mgg_next = copy.deepcopy(self.mgg_current)
-        
-        def dict_createFromGridLocations(self, A_points):
+                                self.mgg_current.spectrum_get( row, col ).spectrum_init( value )
+            # self.mgg_next = copy.deepcopy( self.mgg_current )
+            # use cPickle instead of deepcopy
+            self.mgg_next = cPickle.loads( cPickle.dumps( self.mgg_current, -1 ) )
+
+        def dict_createFromGridLocations( self, A_points ):
             """
                 Given an array of grid locations, <A_points>, construct
                 and return a dictionary of next state spectra located at each of
@@ -189,11 +193,11 @@ class C_CAE:
             if A_points != None:
                 for point in A_points:
                     row, col = point
-                    dict_spectrum[self.mgg_next.spectrum_get(row, col).name_get()] = \
-                        self.mgg_next.spectrum_get(row, col)
+                    dict_spectrum[self.mgg_next.spectrum_get( row, col ).name_get()] = \
+                        self.mgg_next.spectrum_get( row, col )
             return dict_spectrum
-                                
-        def state_transition(self):
+
+        def state_transition( self ):
             """
             The state transition machine for the CAE; determines the
             "next" state from the "current".
@@ -213,53 +217,55 @@ class C_CAE:
             
             Primitive support for multithreaded/parallelization is planned...
             """
-            
+
             # Process the current grid, and determine all the changes required to
             # transition to the next state.
             elementProcessedCount = 0
             misc.tic()
-            for row in np.arange(0, self.m_rows):
-                for col in np.arange(0, self.m_cols):
-                    dict_nextStateNeighbourSpectra      = {}
-                    A_neighbours                        = None
-                    A_neighbours                        = \
-                        misc.neighbours_findFast(2, 1,
-                                    np.array( (row, col) ),
-                                    gridSize = np.array( (self.m_rows, self.m_cols) ),
-                                    wrapGridEdges       = False,
-                                    returnUnion         = True,
-                                    includeOrigin       = False)
-                    dict_nextStateNeighbourSpectra      = \
-                        self.dict_createFromGridLocations(A_neighbours)
-                    deltaSelf, deltaNeighbour           = \
-                        self.mgg_current.spectrum_get(row, col).nextStateDelta_determine(
-                                                dict_nextStateNeighbourSpectra)
+            for row in np.arange( 0, self.m_rows ):
+                for col in np.arange( 0, self.m_cols ):
+                    dict_nextStateNeighbourSpectra = {}
+                    A_neighbours = None
+                    A_neighbours = \
+                        misc.neighbours_findFast( 2, 1,
+                                    np.array( ( row, col ) ),
+                                    gridSize=np.array( ( self.m_rows, self.m_cols ) ),
+                                    wrapGridEdges=False,
+                                    returnUnion=True,
+                                    includeOrigin=False )
+                    dict_nextStateNeighbourSpectra = \
+                        self.dict_createFromGridLocations( A_neighbours )
+                    deltaSelf, deltaNeighbour = \
+                        self.mgg_current.spectrum_get( row, col ).nextStateDelta_determine( 
+                                                dict_nextStateNeighbourSpectra )
                     if deltaNeighbour:
                         for update in deltaNeighbour.keys():
                             elementProcessedCount += 1
-                            updateRule      = deltaNeighbour[update]
-                            dict_nextStateNeighbourSpectra[update].nextState_process(updateRule)
+                            updateRule = deltaNeighbour[update]
+                            dict_nextStateNeighbourSpectra[update].nextState_process( updateRule )
             print "Update loop time: %f seconds (%d elements processed)." % \
                         ( misc.toc(), elementProcessedCount )
 
             # Now update the current state with the next state
             misc.tic()
             b_setFromArray = False
-            self.mgg_next.internals_sync(b_setFromArray)
-            print misc.toc(sysprint="Synchronization: %f seconds.")
+            self.mgg_next.internals_sync( b_setFromArray )
+            print misc.toc( sysprint="Synchronization: %f seconds." )
             misc.tic()
-            self.mgg_current    = copy.deepcopy(self.mgg_next)    
-            print misc.toc(sysprint="next->current deepcopy: %f seconds.\n")
+            # self.mgg_current    = copy.deepcopy(self.mgg_next)
+            # use cPickle instead of deepcopy
+            self.mgg_current = cPickle.loads( cPickle.dumps( self.mgg_next, -1 ) )
+            print misc.toc( sysprint="next->current deepcopy: %f seconds.\n" )
             return elementProcessedCount
-                        
-        def currentSpectralArray_get(self, anp_gridLocation):
+
+        def currentSpectralArray_get( self, anp_gridLocation ):
             """
             Return the spectral array at a given location in the current grid.
-            """                        
-            return self.mgg_current.spectralArray_get(anp_gridLocation)
-    
-        def spectrum_get(self, row, col):
+            """
+            return self.mgg_current.spectralArray_get( anp_gridLocation )
+
+        def spectrum_get( self, row, col ):
             """
             Return the spectrum (from the current state) at the given location
             """
-            return self.mgg_current.spectrum_get(row, col)
+            return self.mgg_current.spectrum_get( row, col )

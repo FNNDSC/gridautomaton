@@ -40,16 +40,16 @@ class C_ggrid :
 	#
         mdictErr = {
 	    'Constructing'      : {
-	        'action'        : 'attempting to construct grid, ', 
-	        'error'         : 'an internal calling API error occurred.', 
+	        'action'        : 'attempting to construct grid, ',
+	        'error'         : 'an internal calling API error occurred.',
 	        'exitCode'      : 1},
 	    'ConstructingArray' : {
-	        'action'        : 'attempting to construct from array arg, ', 
-	        'error'         : 'an internal calling API error occurred.', 
+	        'action'        : 'attempting to construct from array arg, ',
+	        'error'         : 'an internal calling API error occurred.',
 	        'exitCode'      : 2},
 	    'ReadGrid'          : {
-	        'action'        : 'attempting to read grid file, ', 
-	        'error'         : 'I could not access the file.', 
+	        'action'        : 'attempting to read grid file, ',
+	        'error'         : 'I could not access the file.',
 	        'exitCode'      : 10},
 	    'Operands'          : {
 	        'action'        : 'checking operands, ',
@@ -64,38 +64,38 @@ class C_ggrid :
 	        'error'         : 'a PickleError occured.',
 	        'exitCode'      : 13}
 	}
-        
+
 	#
 	# Methods
 	#
 	# Core methods - construct, initialise, id
-	
-	def error_exit(		self,
+
+	def error_exit( self,
 				astr_key,
-				ab_exitToOs = 1
+				ab_exitToOs=1
 				):
-	    print "%s::%s:" % (self.mstr_obj, self.mstr_name)
+	    print "%s::%s:" % ( self.mstr_obj, self.mstr_name )
 	    print "\tSorry, some error seems to have occurred in <%s::%s>" \
-	    		% (self.__name__, self.mstr_def)
-	    print "\tWhile %s" 		% C_ggrid.mdictErr[astr_key]['action']
-	    print "\t%s"		% C_ggrid.mdictErr[astr_key]['error']
+	    		% ( self.__name__, self.mstr_def )
+	    print "\tWhile %s" 		 % C_ggrid.mdictErr[astr_key]['action']
+	    print "\t%s"		 % C_ggrid.mdictErr[astr_key]['error']
 	    print ""
 	    if ab_exitToOs:
 	    	print "Returning to system with error code %d" % \
 	    				  C_ggrid.mdictErr[astr_key]['exitCode']
-	        sys.exit(C_ggrid.mdictErr[astr_key]['exitCode'])
+	        sys.exit( C_ggrid.mdictErr[astr_key]['exitCode'] )
 	    return C_ggrid.mdictErr[astr_key]['exitCode']
 
-	def fatal(self, astr_key, astr_extraMsg=""):
-	    if len(astr_extraMsg): print astr_extraMsg
-	    self.error_exit( astr_key)
-	
-	def warn(self, astr_key, astr_extraMsg=""):
-	    b_exitToOS  = 0
-	    if len(astr_extraMsg): print astr_extraMsg
-	    self.error_exit( astr_key, b_exitToOS)
-	    
-	def __init__(self, *args, **kwargs):
+	def fatal( self, astr_key, astr_extraMsg="" ):
+	    if len( astr_extraMsg ): print astr_extraMsg
+	    self.error_exit( astr_key )
+
+	def warn( self, astr_key, astr_extraMsg="" ):
+	    b_exitToOS = 0
+	    if len( astr_extraMsg ): print astr_extraMsg
+	    self.error_exit( astr_key, b_exitToOS )
+
+	def __init__( self, *args, **kwargs ):
 	    """
 	    NAME
 		 Constructor
@@ -192,91 +192,94 @@ class C_ggrid :
 		    			from spectral grid.
 		
 	    """
-	    self.__name__ 	= "C_ggrid"
-	    self.mstr_obj	= 'C_ggrid';	# name of object class
-            self.mstr_name	= '<unnamed>';	# name of object variable
-	    self.mstr_def	= 'constructor';# name of function being processed
-            self.m_id		= -1; 		# int id
-            self.m_iter		= 0;		# current iteration in an
+	    self.__name__ 	 = "C_ggrid"
+	    self.mstr_obj	 = 'C_ggrid';	# name of object class
+            self.mstr_name	 = '<unnamed>';	# name of object variable
+	    self.mstr_def	 = 'constructor';# name of function being processed
+            self.m_id		 = -1; 		# int id
+            self.m_iter		 = 0;		# current iteration in an
                                 		#+ arbitrary processing 
 						#+ scheme
-            self.m_verbosity	= 0;		# debug related value for 
+            self.m_verbosity	 = 0;		# debug related value for 
 						#+ object
-            self.m_warnings	= 0;            # show warnings 
+            self.m_warnings	 = 0;            # show warnings 
 						#+ (and warnings level)
-	    
-	    self.mstr_gridFileName 	= ""	# file containing numeric grid	
-	    self.ma_grid       		= None	# array grid (of np_arrays)
-	    self.macs_grid		= None	# grid of spectrum types
-	    self.m_rows			= 0
-	    self.m_cols			= 0
-	    self.mb_initializeFromArr	= True
-	    
+
+	    self.mstr_gridFileName 	 = ""	# file containing numeric grid	
+	    self.ma_grid       		 = None	# array grid (of np_arrays)
+	    self.macs_grid		 = None	# grid of spectrum types
+	    self.m_rows			 = 0
+	    self.m_cols			 = 0
+	    self.mb_initializeFromArr	 = True
+
 	    for key, value in kwargs.iteritems():
 	    	if key == 'name': self.mstr_name = value
-	    
-	    if len(args) == 2:
+
+	    if len( args ) == 2:
 		    c = args[0]
-		    if type(c) is types.StringType:
+		    if type( c ) is types.StringType:
 		    	self.mstr_gridFileName = c
 	                try:
-	                   self.ma_grid = np.genfromtxt(self.mstr_gridFileName)
-	                except IOError: self.fatal('ReadGrid')
+	                   self.ma_grid = np.genfromtxt( self.mstr_gridFileName )
+	                except IOError: self.fatal( 'ReadGrid' )
 	                self.mb_initializeFromArr = True
-	            if type(c).__name__ == 'ndarray':
+	            if type( c ).__name__ == 'ndarray':
 	            	# Examine the array. If the first element is type
 	            	# ndarray, assume the array is spectral grid data.
 	            	# If the first element is type int, assume that the
 	            	# array denotes the size of grid to create.
-	            	if len(c) == 2:
-	            	    if type(c[0]).__name__ == 'int64' and \
-	            	       type(c[1]).__name__ == 'int64':
-	            	        self.ma_grid = np.zeros( (c[0], c[1]), 
-							dtype='object')
+	            	if len( c ) == 2:
+	            	    if type( c[0] ).__name__ == 'int64' and \
+	            	       type( c[1] ).__name__ == 'int64':
+	            	        self.ma_grid = np.zeros( ( c[0], c[1] ),
+							dtype='object' )
 	                        self.mb_initializeFromArr = False
-	                    if type(c[0]).__name__ == 'ndarray':
+	                    if type( c[0] ).__name__ == 'ndarray':
 	           	        self.ma_grid = c.copy()
 	                        self.mb_initializeFromArr = True
-	                else: fatal('ConstructingArray')
-	            if type(c) is types.IntType:
+	                else: fatal( 'ConstructingArray' )
+	            if type( c ) is types.IntType:
 	            	# If constructed with single int, create
 	            	# zeroes grid of [c x c] 
-	            	self.ma_grid = np.zeros( (c, c), dtype='object' )
+	            	self.ma_grid = np.zeros( ( c, c ), dtype='object' )
 	                self.mb_initializeFromArr = False
 	            # 
 	            # At this point, the shape of the grid should
 	            # be known.
 	            #
-	       	    l_dim           = self.ma_grid.shape;
-	    	    self.m_rows     = l_dim[0]
-	    	    self.m_cols     = l_dim[1]
-	    	    
+	       	    l_dim = self.ma_grid.shape;
+	    	    self.m_rows = l_dim[0]
+	    	    self.m_cols = l_dim[1]
+
 	    	    #
 	    	    # Now, copy the spectrum object to the internal grid
 	    	    #
 	    	    cspectrum = args[1]
-	    	    self.macs_grid	= np.zeros( (self.m_rows, self.m_cols),
-							dtype = 'object')
-	    	    for row in np.arange(0, self.m_rows):
-	    	    	for col in np.arange(0, self.m_cols):
+	    	    self.macs_grid	 = np.zeros( ( self.m_rows, self.m_cols ),
+							dtype='object' )
+	    	    for row in np.arange( 0, self.m_rows ):
+	    	    	for col in np.arange( 0, self.m_cols ):
 	    	    	    #print "setting row: %d, col: %d" % (row, col)
 	    	    	    #print cspectrum
-	    	    	    self.macs_grid[row, col] = copy.deepcopy(cspectrum)
-	    	    
-	    	    if len(args) == 3:
-	    	    	self.mb_initializeFromArr = int(args[2])
+									# self.macs_grid[row, col] = copy.deepcopy(cspectrum)
+									# use cPickle instead of deepcopy
+									self.macs_grid[row, col] = pickle.loads( pickle.dumps( cspectrum, -1 ) )
+
+
+	    	    if len( args ) == 3:
+	    	    	self.mb_initializeFromArr = int( args[2] )
 
 	    	    #
 	    	    # Construct internals
 	    	    #	This essentially links the ma_grid and each spectral
 	    	    #   grid.
 	    	    #
-	            self.internals_sync(self.mb_initializeFromArr)
+	            self.internals_sync( self.mb_initializeFromArr )
 
 	    else:
-	   	self.fatal('Constructing')
-	
-	def internals_sync(self, ab_setFromArray, *args):
+	   	self.fatal( 'Constructing' )
+
+	def internals_sync( self, ab_setFromArray, *args ):
 	    """
 	    DESC
 		Synchronize the internal spectral class data and 
@@ -302,40 +305,40 @@ class C_ggrid :
 	    				indices are updated.
 	    """
 	    b_initArrayIsSingleComponent = False
-	    if type(self.ma_grid[0,0]).__name__ != 'ndarray': 
+	    if type( self.ma_grid[0, 0] ).__name__ != 'ndarray':
 	    	b_initArrayIsSingleComponent = True
 	    aa_index = self.ma_grid
-	    a_flat = misc.array2DIndices_enumerate(aa_index.shape)
-	    if len(args):
+	    a_flat = misc.array2DIndices_enumerate( aa_index.shape )
+	    if len( args ):
 	    	a = args[0]
-	    	if type(a).__name__ == 'ndarray':
+	    	if type( a ).__name__ == 'ndarray':
 	    	    a_flat = a
 	    for v_index in a_flat:
 	    	row = v_index[0]
 	    	col = v_index[1]
 		if ab_setFromArray:
 		    if not b_initArrayIsSingleComponent:
-		        self.macs_grid[row, col].arr_set(
-						self.ma_grid[row, col])
+		        self.macs_grid[row, col].arr_set( 
+						self.ma_grid[row, col] )
 		    else:
 		    	b_overwrite = True
-		    	self.macs_grid[row, col].component_add(
-						self.ma_grid[row, col], 
-						b_overwrite)
+		    	self.macs_grid[row, col].component_add( 
+						self.ma_grid[row, col],
+						b_overwrite )
 		    	self.ma_grid[row, col] = \
-		    	    		self.macs_grid[row, col].arr_get()	
+		    	    		self.macs_grid[row, col].arr_get()
 		else:
 		    self.ma_grid[row, col] = \
-		    	np.array(self.macs_grid[row, col].arr_get())
-		self.spectrumDefaults_set(row, col)
-	
-        def rows_get(self):
+		    	np.array( self.macs_grid[row, col].arr_get() )
+		self.spectrumDefaults_set( row, col )
+
+        def rows_get( self ):
             return self.m_rows
-           
-        def cols_get(self):
+
+        def cols_get( self ):
             return self.m_cols
-           
-        def spectralArray_set(self, anp_gridLocation, anp_value):
+
+        def spectralArray_set( self, anp_gridLocation, anp_value ):
  	    """
  	    ARGS
  	        anp_gridLocation	numpy array	array of grids to set
@@ -355,14 +358,14 @@ class C_ggrid :
  	    """
  	    locations, cols = anp_gridLocation.shape
  	    ret = 0
- 	    for location in np.arange(0, locations):
+ 	    for location in np.arange( 0, locations ):
  	    	row, col = anp_gridLocation[location]
  	    	self.ma_grid[row, col] = anp_value.copy()
- 	    	self.macs_grid[row, col].arr_set(anp_value)
+ 	    	self.macs_grid[row, col].arr_set( anp_value )
  	    	ret += 1
  	    return ret
 
-	def spectralArray_get(self, anp_gridLocation):
+	def spectralArray_get( self, anp_gridLocation ):
  	    """
  	    ARGS
  		anp_gridLocation	numpy array	array of grids to set
@@ -376,68 +379,68 @@ class C_ggrid :
  		<anp_gridLocation> is a column dominant vector of 2D grid
  		locations.
  	    """
- 	    locations, cols 	= anp_gridLocation.shape
- 	    np_gridSpectra	= np.zeros( (locations), dtype='object')
- 	    for location in np.arange(0, locations):
+ 	    locations, cols 	 = anp_gridLocation.shape
+ 	    np_gridSpectra	 = np.zeros( ( locations ), dtype='object' )
+ 	    for location in np.arange( 0, locations ):
  	    	row, col = anp_gridLocation[location]
- 	    	np_gridSpectra[location] = (self.ma_grid[row, col]).copy()
+ 	    	np_gridSpectra[location] = ( self.ma_grid[row, col] ).copy()
  	    return np_gridSpectra
- 	   
- 	def spectrum_get(self, row, col):
+
+ 	def spectrum_get( self, row, col ):
  	    """
  	    	Return the spectrum at [row, col]
  	    """
  	    return self.macs_grid[row, col]
 
-        def spectrumDefaults_set(self, row, col):
+        def spectrumDefaults_set( self, row, col ):
             """
             	Sets some generic defaults for passed spectrum
             """
-            self.macs_grid[row, col].name_set('(%d, %d)' % (row, col))
-            self.macs_grid[row, col].printAsRow_set(True)
-            self.macs_grid[row, col].printConcise_set(True)
-            self.macs_grid[row, col].printColWidth_set(15)
+            self.macs_grid[row, col].name_set( '(%d, %d)' % ( row, col ) )
+            self.macs_grid[row, col].printAsRow_set( True )
+            self.macs_grid[row, col].printConcise_set( True )
+            self.macs_grid[row, col].printColWidth_set( 15 )
 
-	def core_print(self):
+	def core_print( self ):
 		str = ""
-		str+= 'mstr_sobj\t\t= %s\n' 	% self.mstr_obj
-		str+= 'mstr_name\t\t= %s\n' 	% self.mstr_name
-		str+= 'm_id\t\t\t= %d\n' 	% self.m_id
-		str+= 'm_iter\t\t\t= %d\n'	% self.m_iter
-		str+= 'm_verbosity\t\t= %d\n'	% self.m_verbosity
-		str+= 'm_warnings\t\t= %d\n'	% self.m_warnings
+		str += 'mstr_sobj\t\t= %s\n' 	 % self.mstr_obj
+		str += 'mstr_name\t\t= %s\n' 	 % self.mstr_name
+		str += 'm_id\t\t\t= %d\n' 	 % self.m_id
+		str += 'm_iter\t\t\t= %d\n'	 % self.m_iter
+		str += 'm_verbosity\t\t= %d\n'	 % self.m_verbosity
+		str += 'm_warnings\t\t= %d\n'	 % self.m_warnings
 		return str
 
-	def __str__(self):
+	def __str__( self ):
 	    str = ""
-	    str+= 'Object internal name: %s\n' % self.mstr_name
-	    str+= 'Raw grid:\n'
-	    str+= '%s\n\n' % np.array_str(self.ma_grid)
-	    str+= 'Spectra:\n'
-	    for row in np.arange(0, self.m_rows):
-	    	for col in np.arange(0, self.m_cols):
+	    str += 'Object internal name: %s\n' % self.mstr_name
+	    str += 'Raw grid:\n'
+	    str += '%s\n\n' % np.array_str( self.ma_grid )
+	    str += 'Spectra:\n'
+	    for row in np.arange( 0, self.m_rows ):
+	    	for col in np.arange( 0, self.m_cols ):
 	    	    str += "%s" % self.macs_grid[row, col]
-	    	str += "\n"   
+	    	str += "\n"
 	    return str
 
-	def gridarr_get(self):
+	def gridarr_get( self ):
 	    """
 	    	Return the internal ma_grid
 	    """
 	    return self.ma_grid
 
-    	def __add__(self, cg):
+    	def __add__( self, cg ):
     	    """
     	    	Adds two grids together, returning the result as a new
     	    	grid. For each grid cell (which contains a spectrum)
     	    	a new spectrum is created which is the sum of the 
     	    	constituent spectra.
     	    """
-    	    if self.ma_grid.shape != cg.ma_grid.shape: self.fatal('Operands')
-    	    C_add = C_ggrid( self.ma_grid, self.macs_grid[0,0])
+    	    if self.ma_grid.shape != cg.ma_grid.shape: self.fatal( 'Operands' )
+    	    C_add = C_ggrid( self.ma_grid, self.macs_grid[0, 0] )
     	    C_add.ma_grid = self.ma_grid + cg.ma_grid
     	    b_setFromArray = True
-    	    C_add.internals_sync(b_setFromArray)
+    	    C_add.internals_sync( b_setFromArray )
 #	    for row in np.arange(0, self.m_rows):
 #		for col in np.arange(0, self.m_cols):
 #		    spectrum_self = self.macs_grid[row, col]
@@ -445,20 +448,20 @@ class C_ggrid :
 #		    C_add.macs_grid[row, col] = spectrum_self + spectrum_cg
 #		    C_add.spectrumDefaults_set(row, col)
     	    return C_add
-	
-	def save(self, astr_fileName):
+
+	def save( self, astr_fileName ):
 	    """
 	    	Saves the object to file using 'pickle'
 	    """
 	    try:
-	    	pickle.dump(self, astr_fileName)
-	    except PickleError: self.fatal('Save')
-	    
-	def load(self, astr_fileName):
+	    	pickle.dump( self, astr_fileName )
+	    except PickleError: self.fatal( 'Save' )
+
+	def load( self, astr_fileName ):
 	    """
 	    	Load the object from file using 'pickle'. Overwrite
 	    	current internals.
 	    """
 	    try:
-	    	self = pickle.load(self, open(astr_fileName))
-	    except PickleError: self.fatal('Load')
+	    	self = pickle.load( self, open( astr_fileName ) )
+	    except PickleError: self.fatal( 'Load' )
