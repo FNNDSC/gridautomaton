@@ -103,7 +103,10 @@ class C_CAE:
             # The core data containers are grids of cellular automata 
             # machines
             self.mgg_current = None          # Current grid
-            self.mgg_next = None          # Next iteration grid            
+            self.mgg_next = None          # Next iteration grid
+            self.mb_syncGridSpectralArray = False # Controls whether or not
+                                                  # to synchronize grid spectra
+                                                  # and grid helper array            
 
             # For the most part, the CAE accepts the same constructor
             # pattern as the C_ggrid:
@@ -118,6 +121,8 @@ class C_CAE:
 
             self.m_rows = self.mgg_current.rows_get()
             self.m_cols = self.mgg_current.cols_get()
+
+            self.__neighbors = {}
 
         def initialize( self, *args, **kwargs ):
             """
@@ -158,7 +163,7 @@ class C_CAE:
                     Initialize all elements.
                     
             PRECONIDTIONS:
-                o Internal grids must exist
+                o Internal grids must exist and contain valid objects.
                 
             POSTCONDITIONS:
                 o The "current" and "next" are initialized based on pattern
@@ -169,16 +174,34 @@ class C_CAE:
                   are ignored. If array size is not same as grid, no
                   initialization is performed.
             """
-
+            l_components = self.mgg_current.spectrum_get( 0, 0 ).spectrumKeys_get()
+            numComponents = len( l_components )
+            maxEnergy = 255
+            maxQuanta = maxEnergy / numComponents
             if len( args ):
                 a_init = args[0]
                 if type( a_init ).__name__ == 'ndarray':
                     rows, cols = a_init.shape
                     if rows == self.m_rows and cols == self.m_cols:
+                        # In this case, an initialization matrix has been supplied
+                        # by the caller. The value at each cell index is used 
+                        # to initialize the corresponding spectrum object. In order
+                        # for the initialization to be "uniform" across the RGB
+                        # space, we need to re-scale the observed values such that
+                        # a uniform partitioning of the domain results in a uniform
+                        # partitioning of the values, too.
+                        a_norm = misc.arr_normalize( a_init, scale=maxEnergy )
+                        a_round = a_norm.round()
+                        # We bin the cdf with a '+1' since the 'zeros' in the
+                        # input matrix are a special case. This also simplifies
+                        # the value lookup in the cdf partitions.
+                        a_cdf = misc.cdf( a_round, bins=a_round.max() + 1 )
+                        l_v = misc.cdf_distribution( a_cdf, numComponents )
                         for row in np.arange( 0, rows ):
                             for col in np.arange( 0, cols ):
-                                value = a_init[row, col]
-                                self.mgg_current.spectrum_get( row, col ).spectrum_init( value )
+                                value = a_round[row, col]
+                                self.mgg_current.spectrum_get( row, col ).\
+                                        spectrum_init( value, l_v )
             # self.mgg_next = copy.deepcopy( self.mgg_current )
             # use cPickle instead of deepcopy
             self.mgg_next = cPickle.loads( cPickle.dumps( self.mgg_current, -1 ) )
@@ -226,13 +249,22 @@ class C_CAE:
                 for col in np.arange( 0, self.m_cols ):
                     dict_nextStateNeighbourSpectra = {}
                     A_neighbours = None
-                    A_neighbours = \
-                        misc.neighbours_findFast( 2, 1,
-                                    np.array( ( row, col ) ),
-                                    gridSize=np.array( ( self.m_rows, self.m_cols ) ),
-                                    wrapGridEdges=False,
-                                    returnUnion=True,
-                                    includeOrigin=False )
+
+                    key = str( row ) + ':' + str( col )
+                    if self.__neighbors.has_key( key ):
+                      # we already have the neighbors
+                      A_neighbours = self.__neighbors[key]
+                    else:
+                      # we don't have the neighbors, so let's calculate them
+                      A_neighbours = \
+                          misc.neighbours_findFast( 2, 1,
+                                      np.array( ( row, col ) ),
+                                      gridSize=np.array( ( self.m_rows, self.m_cols ) ),
+                                      wrapGridEdges=False,
+                                      returnUnion=True,
+                                      includeOrigin=False )
+                      self.__neighbors[key] = A_neighbours
+
                     dict_nextStateNeighbourSpectra = \
                         self.dict_createFromGridLocations( A_neighbours )
                     deltaSelf, deltaNeighbour = \
@@ -249,7 +281,7 @@ class C_CAE:
             # Now update the current state with the next state
             misc.tic()
             b_setFromArray = False
-            self.mgg_next.internals_sync( b_setFromArray )
+            if self.mb_syncGridSpectralArray: self.mgg_next.internals_sync( b_setFromArray )
             print misc.toc( sysprint="Synchronization: %f seconds." )
             misc.tic()
             # self.mgg_current    = copy.deepcopy(self.mgg_next)
@@ -269,3 +301,35 @@ class C_CAE:
             Return the spectrum (from the current state) at the given location
             """
             return self.mgg_current.spectrum_get( row, col )
+
+        def currentgrid_get( self, synced=False, next=False ):
+            """
+            Return the current or next grid as a np-array which is synced on request.
+            """
+            if next:
+              grid = self.mgg_next
+            else:
+              grid = self.mgg_current
+
+            if synced:
+              grid.internals_sync( False )
+
+            return grid.gridarr_get()
+
+        def currentGridCorners_areAllDominant(self):
+            """
+            DESC
+                Simple conditional that returns a True if all the grid corners
+                have a dominant spectral harmonic. If any of the corners do not
+                have a dominant harmonic, return False.
+                
+                This method is mostly used as a conditional end check on the 
+                evolutionary state of a system.
+            """    
+            nTopLeft     = len(self.spectrum_get(0, 0).max_harmonics())
+            nTopRight    = len(self.spectrum_get(0, self.m_cols-1).max_harmonics())
+            nBottomLeft  = len(self.spectrum_get(self.m_rows-1, 0).max_harmonics())
+            nBottomRight = len(self.spectrum_get(self.m_rows-1, self.m_cols-1).max_harmonics())             
+            return nTopLeft | nTopRight | nBottomLeft | nBottomRight == 1     
+                
+                 

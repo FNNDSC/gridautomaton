@@ -185,6 +185,12 @@ class C_spectrum :
 	    	Return the 'mstr_name' of the object
 	    """
 	    return self.mstr_name
+
+	def spectrumKeys_get(self):
+	   """
+	   	Return the self.ml_keys
+	   """
+	   return self.ml_keys
 	    	
 	def arr_get(self):
 	   """
@@ -459,6 +465,18 @@ class C_spectrum :
 	    try:
 	    	self = pickle.load(self, open(astr_fileName))
 	    except PickleError: self.fatal('Load')
+		    
+	def dominant_harmonic(self):
+	    """
+	        Returns a single string denoting the dominant harmonic
+	        of the spectrum. If there is no dominant component, 
+	        return None
+	    """
+	    l_max = self.max_harmonics()
+	    if len(l_max) == 1:
+	    	return l_max[0]
+	    else:
+	    	return None	    
 		    
 	def max_harmonics(self):    
 	    """
