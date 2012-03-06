@@ -36,7 +36,7 @@ from 	configobj 	import 	ConfigObj
 # Project imports
 from	m4u_env		import 	*
 from 	C_SGMLatom 	import 	*
-from	systemMisc	import	*
+from	_common.systemMisc	import	*
     		
 class C_kedasa :
 	# 
@@ -363,7 +363,7 @@ class C_configObj :
 		return 'The "configObj" child manages config object file access.'
 	
 	def configObj_set(self, astr_configFileName):
-	    if systemMisc.file_exists(astr_configFileName):
+	    if _common.systemMisc.file_exists(astr_configFileName):
 		self.mconfigObj	= ConfigObj(astr_configFileName)
 			
 	def fieldset_usingConfigObj(self, astr_key):
@@ -423,7 +423,7 @@ class C_CSV :
 	    #	using set delimiter
 	    # o Return: True = write successful, False = write unsuccessful 
 	    #
-	    if systemMisc.file_exists(self.mstr_DBFileName):
+	    if _common.systemMisc.file_exists(self.mstr_DBFileName):
 		fout	= open(self.mstr_DBFileName, "a")
 	    	for str_element in self.mStruct.ml_keys:
 		    str_val	= \
@@ -544,12 +544,12 @@ class C_xmlDB :
 	    str_cmd = 'cat %s | grep -v \/database > %s.tmp' % \
 	    	(self.mstr_DBfullName, 
 		 self.mstr_DBfullName)
-	    systemMisc.system_eval(str_cmd)
+	    _common.systemMisc.system_eval(str_cmd)
 	    str_cmd = 'cp %s.tmp %s ; rm %s.tmp' % \
 	    		(self.mstr_DBfullName,
 			 self.mstr_DBfullName,
 			 self.mstr_DBfullName)
- 	    systemMisc.system_eval(str_cmd)
+ 	    _common.systemMisc.system_eval(str_cmd)
 	    
 	def XML_postparse(self, ab_forceXlsRun = False):
 	    if self.mstr_DBtype == 'distributed':

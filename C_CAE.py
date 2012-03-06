@@ -17,7 +17,7 @@ from C_ggrid            import *
 from C_spectrum_CAM     import *
 from copy import deepcopy
 
-import systemMisc       as misc
+import _common.systemMisc       as misc
 import numpy            as np
 import itertools
 import cPickle

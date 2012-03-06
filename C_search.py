@@ -26,7 +26,7 @@ import	datetime
 from 	configobj 		import 	ConfigObj
 
 # Project imports
-import	systemMisc
+import	_common.systemMisc
 
 class C_search :
 	"""
@@ -176,7 +176,7 @@ class C_search :
 		os.chdir(str_dir)
 		for str_searchExpr in self.mlstr_searchExpr:
 		    str_command	= '%s %s' % (self.mstr_searchShell, str_searchExpr)
- 		    [retcode, str_stdout]	= systemMisc.subprocess_eval(str_command, 0)
+ 		    [retcode, str_stdout]	= _common.systemMisc.subprocess_eval(str_command, 0)
 	    	    if retcode == 0:
 			self.mlstr_filesHit	= str_stdout.split()	
 			self.mdict_filesHit	= dict.fromkeys(self.mlstr_filesHit)
@@ -267,7 +267,7 @@ class C_search_m4uXML(C_search):
 		    str_shCommand	= '%s -d %s -e recipe' % \
 		    			(self.mstr_fieldgetShell, astr_fileHit)
 		    [retcode, str_recipe] = \
-		    		systemMisc.subprocess_eval(str_shCommand)
+		    		_common.systemMisc.subprocess_eval(str_shCommand)
 		    if(retcode): 	str_type = 'RECIPE'
 		    else:		str_type = 'MENU'
 		    dict_results['type']	= str_type
@@ -275,7 +275,7 @@ class C_search_m4uXML(C_search):
 		    str_shCommand	= '%s -d %s %s' % \
 		    			(self.mstr_fieldgetShell, astr_fileHit, str_component)
 		    [retcode, str_field] = \
-		    		systemMisc.subprocess_eval(str_shCommand)
+		    		_common.systemMisc.subprocess_eval(str_shCommand)
 		    dict_results[str_component] = str_field
 	    return dict_results
 	

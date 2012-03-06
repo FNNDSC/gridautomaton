@@ -25,7 +25,7 @@ import	string
 import	types
 import	itertools
 
-import	systemMisc	as misc
+import	_common.systemMisc	as misc
 import 	numpy 		as np
 
 import 	cPickle		as pickle

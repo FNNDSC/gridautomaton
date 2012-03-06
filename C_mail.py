@@ -32,7 +32,8 @@ from 	email.MIMEMultipart 	import 	MIMEMultipart
 from 	configobj 		import 	ConfigObj
 
 # SCIN imports
-import	systemMisc
+from _common.systemMisc import *
+#import	systemMisc
 
 class C_mail :
 	# 

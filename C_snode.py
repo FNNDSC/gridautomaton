@@ -22,7 +22,7 @@ import 	sys
 import	re
 from 	string 		import 	*
 
-from    systemMisc      import  *
+from    _common.systemMisc      import  *
 from    C_stringCore    import  *
 
 

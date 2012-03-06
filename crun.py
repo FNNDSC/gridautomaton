@@ -16,7 +16,7 @@
 #
 
 # System imports
-import systemMisc as misc
+import _common.systemMisc as misc
 import sys
 
 class crun(object):

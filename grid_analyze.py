@@ -69,7 +69,7 @@ import	sys
 import	getopt
 import  string
 from    numpy   import *
-import  systemMisc      as misc
+import  _common.systemMisc      as misc
 import  C_ggrid         as grid
 import  C_spectrum      as spectrum
 

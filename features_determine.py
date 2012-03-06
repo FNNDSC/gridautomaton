@@ -87,7 +87,7 @@ import	sys
 import	getopt
 import  string
 import  numpy           as np
-import  systemMisc      as misc
+import  _common.systemMisc      as misc
 
 dictErr = {
     'NoArgs'            : {

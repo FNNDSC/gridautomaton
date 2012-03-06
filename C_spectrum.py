@@ -27,7 +27,7 @@ import	itertools
 import	numpy		as np
 import 	copy
 
-import	systemMisc	as misc
+import	_common.systemMisc	as misc
 
 class C_spectrum :
 	# 

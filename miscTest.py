@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import systemMisc       as misc
+from _common import systemMisc as misc
 import numpy            as np
 
 col2sort = lambda A: np.sort(A.view('i8,i8'), order=['f0','f1'], axis=0).view(np.int)

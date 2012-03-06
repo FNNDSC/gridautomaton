@@ -13,7 +13,7 @@ import  numpy           as np
 from    C_spectrum_CAM  import *
 from    C_CAE           import *
 
-import  systemMisc      as misc
+import  _common.systemMisc      as misc
 
 
 """
