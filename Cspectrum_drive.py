@@ -20,9 +20,12 @@ from    C_spectrum      import *
 C_t     = C_spectrum_color(['r', 'g', 'b', 'y'])
 C_t.component_add('b')
 
+C_s     = C_spectrum(['1', '2', '3'])
+print C_s
+
 a       = array( (1, 1, 1, 2, 5, 10, 5, 2, 1, 1, 1))
 C_sa    = C_spectrum(a)
-
+C_sa.component_add(2)
 print C_sa.arr_get()
 
 C_sp    = C_spectrum_color()

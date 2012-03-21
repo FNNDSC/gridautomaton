@@ -166,7 +166,22 @@ for str_filePath in lstr_hits:
     str_gridFile = '%s.grid' % str_stem
     str_xordFile = '%s.xord' % str_stem
     str_yordFile = '%s.yord' % str_stem
-    Cg           = grid.C_ggrid(str_gridFile)
+
+    # We need to setup the grid with the proper size, which
+    # is a slight chicken-and-egg problem. First, we read
+    # one of the ord files, determine the string length
+    # and there we go :-)
+    if not count:
+        f = open(str_xordFile)
+        str_file = f.readline()
+        str_xord = str_file.splitlines()[0]
+        gridSize = len(str_xord)
+        l_keys   = list(str_xord)
+        l_keys.sort()
+        f.close()
+    gridSpect    = spectrum.C_spectrum(l_keys)
+    Cg           = grid.C_ggrid(str_gridFile, gridSpect)
+    print Cg
     if not count:
         Cg_sum          = Cg
         Csp_xord        = spectrum.C_spectrum_permutation(Cg_sum.cols_get())

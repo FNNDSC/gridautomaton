@@ -228,16 +228,20 @@ class C_ggrid :
 	            	# ndarray, assume the array is spectral grid data.
 	            	# If the first element is type int, assume that the
 	            	# array denotes the size of grid to create.
+	            	b_constructedOK = False
 	            	if len( c ) == 2:
 	            	    if type( c[0] ).__name__ == 'int64' and \
 	            	       type( c[1] ).__name__ == 'int64':
 	            	        self.ma_grid = np.zeros( ( c[0], c[1] ),
 							dtype='object' )
 	                        self.mb_initializeFromArr = False
-	                    if type( c[0] ).__name__ == 'ndarray':
-	           	        self.ma_grid = c.copy()
-	                        self.mb_initializeFromArr = True
-	                else: fatal( 'ConstructingArray' )
+	                        b_constructedOK = True
+	                if type( c[0] ).__name__ == 'ndarray':
+	           	    self.ma_grid = c.copy()
+	                    self.mb_initializeFromArr = True
+	                    b_constructedOK = True
+	                if not b_constructedOK: 
+	                    self.fatal( 'ConstructingArray' )
 	            if type( c ) is types.IntType:
 	            	# If constructed with single int, create
 	            	# zeroes grid of [c x c] 
@@ -261,9 +265,9 @@ class C_ggrid :
 	    	    	for col in np.arange( 0, self.m_cols ):
 	    	    	    #print "setting row: %d, col: %d" % (row, col)
 	    	    	    #print cspectrum
-									# self.macs_grid[row, col] = copy.deepcopy(cspectrum)
-									# use cPickle instead of deepcopy
-									self.macs_grid[row, col] = pickle.loads( pickle.dumps( cspectrum, -1 ) )
+			    # self.macs_grid[row, col] = copy.deepcopy(cspectrum)
+			    # use cPickle instead of deepcopy
+			    self.macs_grid[row, col] = pickle.loads( pickle.dumps( cspectrum, -1 ) )
 
 
 	    	    if len( args ) == 3:
@@ -313,6 +317,10 @@ class C_ggrid :
 	    	a = args[0]
 	    	if type( a ).__name__ == 'ndarray':
 	    	    a_flat = a
+            a_grid  = self.ma_grid.copy()
+            if ab_setFromArray and b_initArrayIsSingleComponent:
+	    	self.ma_grid = np.zeros( ( self.m_cols, self.m_rows ),
+					dtype='object' )		    	
 	    for v_index in a_flat:
 	    	row = v_index[0]
 	    	col = v_index[1]
@@ -323,7 +331,7 @@ class C_ggrid :
 		    else:
 		    	b_overwrite = True
 		    	self.macs_grid[row, col].component_add( 
-						self.ma_grid[row, col],
+						int(a_grid[row, col]),
 						b_overwrite )
 		    	self.ma_grid[row, col] = \
 		    	    		self.macs_grid[row, col].arr_get()

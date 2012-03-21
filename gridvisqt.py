@@ -320,7 +320,7 @@ if __name__ == "__main__":
         to the float multiple of the number of elements on the diagonal."
         """ )
   parser.add_argument( '-u', '--updateAmount', action='store', dest='updateAmount', 
-        default=-1, required=False, 
+        default=1, required=False, 
         help='''
         If specified, set the incremental update amount to the passed value. This
         controls the 'amount' of spectral energy that is shifted during an 

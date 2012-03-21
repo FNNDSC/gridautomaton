@@ -253,11 +253,13 @@ class C_spectrum :
 	           else:
 	           	b_canPrint = True
 	           if b_canPrint:
-	               f_sum = self.sum()	
+	               f_sum = self.sum()
+	               if f_sum == 0: f_fieldPerc = 0
+	               else: f_fieldPerc = float(self.mdict_spectrum[field])/float(f_sum)*100	
 	    	       str_t += "%5d - %-*s: %5d (%06.2f%s) " % (self.mdict_keyIndex[field], 
 					          longestKeyLength + 2, field, 
 					   	  self.mdict_spectrum[field],
-					   	  float(self.mdict_spectrum[field])/float(f_sum)*100,
+					   	  f_fieldPerc,
 					   	  '%')
 	    	       if self.mb_printHist:
 	    	           for star in range(0, self.mdict_spectrum[field]):
