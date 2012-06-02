@@ -58,7 +58,7 @@ Gstr_synopsis 	= """
 
   EXAMPLE
   Typical example:
-        $>centroids_determine.py -s "*dat"
+        $>features_determine.py -s "*dat"
 		
   PRECONDITIONS
 
